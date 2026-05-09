@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>高级手速测试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #e6f7ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .title {
+            font-size: 28px;
+            color: #165DFF;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .info {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(22, 93, 255, 0.1);
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 18px;
+            color: #165DFF;
+            font-weight: bold;
+        }
+
+        .area {
+            width: 100%;
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 6px 16px rgba(22, 93, 255, 0.15);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .dot {
+            width: 50px;
+            height: 50px;
+            background: #ff3333;
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 16px 40px;
+            background: #165DFF;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .record {
+            margin-top: 15px;
+            width: 100%;
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="title">⚡ 高级手速测试工具</h1>
+    <div class="info">红点随机出现 → 快速点击 → 测试5次 → 计算平均反应时间</div>
+    <div class="status" id="status">点击下方开始测试</div>
+    <div class="area" id="area"></div>
+    <button class="btn" id="startBtn">开始测试</button>
+    <div class="record" id="record"></div>
+
+<script>
+    const area = document.getElementById('area');
+    const status = document.getElementById('status');
+    const record = document.getElementById('record');
+    const startBtn = document.getElementById('startBtn');
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    area.appendChild(dot);
+
+    let testTimes = 0;
+    const maxTest = 5;
+    let times = [];
+    let startTime = 0;
+    let testing = false;
+
+    // 随机位置
+    function randomPos() {
+        const w = area.clientWidth;
+        const h = area.clientHeight;
+        const x = Math.random() * (w - 60) + 30;
+        const y = Math.random() * (h - 60) + 30;
+        return { x, y };
+    }
+
+    // 显示红点
+    function showDot() {
+        if (testTimes >= maxTest) {
+            finishTest();
+            return;
+        }
+        const pos = randomPos();
+        dot.style.left = pos.x + 'px';
+        dot.style.top = pos.y + 'px';
+        dot.style.display = 'block';
+        startTime = Date.now();
+        status.textContent = `第 ${testTimes + 1}/${maxTest} 次 → 点击红点！`;
+    }
+
+    // 点击红点
+    dot.onclick = function () {
+        if (!testing) return;
+        const end = Date.now();
+        const cost = end - startTime;
+        times.push(cost);
+        testTimes++;
+        dot.style.display = 'none';
+        status.textContent = `第 ${testTimes} 次：${cost} 毫秒`;
+        record.textContent = `已测：${testTimes}/${maxTest} | 记录：${times.join('ms ')}ms`;
+        setTimeout(showDot, 600);
+    };
+
+    // 开始
+    startBtn.onclick = function () {
+        if (testing) return;
+        testing = true;
+        testTimes = 0;
+        times = [];
+        record.textContent = '';
+        startBtn.textContent = '测试中...';
+        startBtn.disabled = true;
+        showDot();
+    };
+
+    // 结束
+    function finishTest() {
+        testing = false;
+        startBtn.textContent = '重新开始测试';
+        startBtn.disabled = false;
+        const sum = times.reduce((a, b) => a + b, 0);
+        const avg = (sum / times.length).toFixed(1);
+        status.textContent = `✅ 测试完成！5次平均：${avg} 毫秒`;
+        record.textContent = `五次成绩：${times.join('ms、')}ms\n平均反应速度：${avg} 毫秒`;
+    }
+</script>
+</body>
+</html>
